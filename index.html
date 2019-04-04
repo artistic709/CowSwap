@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>CowSwap front-end</title>
+    <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script language="javascript" type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.36/dist/web3.min.js"></script>
+    <script language="javascript" type="text/javascript" src="abi.js"></script>
+  </head>
+  <body>
+    <h2>🐄🐄🐄 CowSwap : Swap Your ERC20 Token to COW 🐄🐄🐄</h1>
+    <div id="user">---</div>
+    <div >You have <span id="cowAmount">   </span> COW</div><br><br>
+    <span>Select ERC20 Token </span>
+    <select id ="pay">
+      <option></option>
+      <option >Maker</option>
+      <option >Dai</option>
+      <option >Loom</option>
+    </select>
+    <span style="font-size:14px" > balance: </span><span style="font-size:14px" id ="tkamt"></span><br>
+    <input type="string" hidden id="tokenaddress"><br>
+    <span>Amount to Swap: </span>
+    <input type="number" id="buyAmount">
+    <button id='button' style="font-size:20px">swap</button>
+    <br><br>
+    <small>Powered By <a href="https://uniswap.exchange">Uniswap</a></small>
+    <script>
+      var erc20;
+      var cowSwap
+      var userAccount;
+      var cryptoCowAddress = "0xFDb0065240753FEF4880a9CC7876be59E09D78BB";
+      var cowSwapAddress = "0x84F84667dcD56091F289466A7dc0e2620b562e24";
+      var tokenAddressList ={
+        "Maker" : "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
+        "Dai" : "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
+        "Loom" : "0xA4e8C3Ec456107eA67d3075bF9e3DF3A75823DB0"
+      }
+
+      function startApp(web3js) {
+        cowSwap = new web3js.eth.Contract(COWSWAPABI,cowSwapAddress);
+        $('#button').click(buy);
+        $('#pay').change(showTokenAmount);
+        var accountInterval = setInterval(function() {
+          // Check if account has changed
+          web3js.eth.getAccounts().then(function(a){
+            if(a[0] !== userAccount){
+              userAccount = a[0];
+              // Call a function to update the UI with the new account
+              balanceOf(cryptoCowAddress, userAccount)
+              .then(displayCows);
+
+            }
+          })
+        }, 100);
+      }
+
+      function buy(){
+        var token = $('#tokenaddress').val();
+        var amt = $('#buyAmount').val();
+        //console.log(token, amt);
+        allowance(token)
+        .then(function(a){
+          if (+a == 0){
+            approve(token).then(
+            tokenToCow(token ,web3js.utils.toWei(amt)));
+          }
+          else{
+            tokenToCow(token ,web3js.utils.toWei(amt));
+          }
+          
+        })
+      }
+
+      function allowance(token){
+        erc20 = new web3js.eth.Contract(ERC20ABI, token);
+        return erc20.methods.allowance(userAccount, cowSwapAddress).call();
+      }
+
+      function tokenToCow(token, amt){
+        return cowSwap.methods.tokenToCow(token, amt).send({ from: userAccount});
+      }
+
+      function balanceOf(token){
+        erc20 = new web3js.eth.Contract(ERC20ABI, token);
+        return erc20.methods.balanceOf(userAccount).call();
+      }
+
+      function approve(token){
+        erc20 = new web3js.eth.Contract(ERC20ABI, token);
+        return erc20.methods.approve(cowSwapAddress, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send({ from: userAccount});
+      }
+
+      function showTokenAmount(){
+        $('#tkamt').text('');
+        var tokenName = $('#pay').val();
+        var tokenAddress = tokenAddressList[tokenName];
+        $('#tokenaddress').val(tokenAddress);
+        balanceOf(tokenAddress)
+        .then(dispalyToken)
+      }
+
+      function dispalyToken(amt){
+        $('#tkamt').text(+amt/10**18);
+      }
+
+      function displayCows(cow) {
+        // Start here
+        $("#cowAmount").text(+cow/1e18);
+        $("#user").text(userAccount);
+      }
+
+      $().ready( function() {
+        if (typeof web3 !== 'undefined') {
+          web3js = new Web3(web3.currentProvider);
+          web3js.eth.net.getId().then(function(id){
+            if(id !== 1)
+              window.alert("wrong network");
+          });
+        } else {
+          window.alert("please install metamask");
+        }
+
+        startApp(web3js)
+
+      })
+    </script>
+  </body>
+</html>
