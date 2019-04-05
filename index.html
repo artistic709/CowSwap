@@ -13,10 +13,17 @@
     <div >You have <span id="cowAmount">   </span> COW</div><br><br>
     <span>Select ERC20 Token </span>
     <select id ="pay">
-      <option></option>
+      <option>Select ERC20 Token</option>
       <option >Maker</option>
       <option >Dai</option>
       <option >Loom</option>
+      <option>ZRX</option>
+      <option>BAT</option>
+      <option>WETH</option>
+      <option>KNC</option>
+      <option>MANA</option>
+      <option>LINK</option>
+      <option>SNT</option>
     </select>
     <span style="font-size:14px" > balance: </span><span style="font-size:14px" id ="tkamt"></span><br>
     <input type="string" hidden id="tokenaddress"><br>
@@ -34,7 +41,14 @@
       var tokenAddressList ={
         "Maker" : "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
         "Dai" : "0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359",
-        "Loom" : "0xA4e8C3Ec456107eA67d3075bF9e3DF3A75823DB0"
+        "Loom" : "0xA4e8C3Ec456107eA67d3075bF9e3DF3A75823DB0",
+        "ZRX" : "0xE41d2489571d322189246DaFA5ebDe1F4699F498",
+        "BAT" : "0x0D8775F648430679A709E98d2b0Cb6250d2887EF",
+        "WETH" : "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        "KNC" : "0xdd974D5C2e2928deA5F71b9825b8b646686BD200",
+        "MANA" : "0x0F5D2fB29fb7d3CFeE444a200298f468908cC942",
+        "LINK" : "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+        "SNT" : "0x744d70FDBE2Ba4CF95131626614a1763DF805B9E"
       }
 
       function startApp(web3js) {
