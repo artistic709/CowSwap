@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8">
-    <title>CowSwap front-end</title>
+    <title>CowSwap</title>
     <script language="javascript" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script language="javascript" type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.36/dist/web3.min.js"></script>
     <script language="javascript" type="text/javascript" src="abi.js"></script>
@@ -12,8 +12,8 @@
     <div id="user">---</div>
     <div >You have <span id="cowAmount">   </span> COW</div><br><br>
     <span>Select ERC20 Token </span>
-    <select id ="pay">
-      <option>Select ERC20 Token</option>
+    <select id ="selectToken">
+      <option>ERC20 Token</option>
       <option >Maker</option>
       <option >Dai</option>
       <option >Loom</option>
@@ -25,13 +25,18 @@
       <option>LINK</option>
       <option>SNT</option>
     </select>
-    <span style="font-size:14px" > balance: </span><span style="font-size:14px" id ="tkamt"></span><br>
+    <button style="font-size:20px" hidden id="unlockButton">unlock</button>
+    <span> balance: </span><span id ="tkamt">-</span><br>
     <input type="string" hidden id="tokenaddress"><br>
     <span>Amount to Swap: </span>
     <input type="number" id="buyAmount">
-    <button id='button' style="font-size:20px">swap</button>
+    <button id='swapButton' style="font-size:20px">&nbsp;swap&nbsp;</button>
     <br><br>
-    <small>Powered By <a href="https://uniswap.exchange">Uniswap</a></small>
+    <a style="text-decoration:none; color: orange; " href="https://cryptocow.app">🐄&nbsp; CryptoCow</a><br>
+    <a style="text-decoration:none; color: blue; " href="https://etherscan.io/address/0x84F84667dcD56091F289466A7dc0e2620b562e24">📝&nbsp; CowSwap Contract</a>
+    <br>
+    <div> <a style="text-decoration:none; font-weight: 500; color: #dc6be5" href="https://uniswap.exchange">🦄&nbsp; Powered By Uniswap</a></div>
+    
     <script>
       var erc20;
       var cowSwap
@@ -53,14 +58,13 @@
 
       function startApp(web3js) {
         cowSwap = new web3js.eth.Contract(COWSWAPABI,cowSwapAddress);
-        $('#button').click(buy);
-        $('#pay').change(showTokenAmount);
+        $('#swapButton').click(buy);
+        $('#unlockButton').click(unlock);
+        $('#selectToken').change(showTokenAmount);
         var accountInterval = setInterval(function() {
-          // Check if account has changed
           web3js.eth.getAccounts().then(function(a){
             if(a[0] !== userAccount){
               userAccount = a[0];
-              // Call a function to update the UI with the new account
               balanceOf(cryptoCowAddress, userAccount)
               .then(displayCows);
 
@@ -69,15 +73,18 @@
         }, 100);
       }
 
+      function unlock(){
+        var token = $('#tokenaddress').val();
+        approve(token);
+      }
+
       function buy(){
         var token = $('#tokenaddress').val();
         var amt = $('#buyAmount').val();
-        //console.log(token, amt);
         allowance(token)
         .then(function(a){
           if (+a == 0){
-            approve(token).then(
-            tokenToCow(token ,web3js.utils.toWei(amt)));
+            window.alert("Unlock Token Before Swap");
           }
           else{
             tokenToCow(token ,web3js.utils.toWei(amt));
@@ -107,19 +114,35 @@
 
       function showTokenAmount(){
         $('#tkamt').text('');
-        var tokenName = $('#pay').val();
+        var tokenName = $('#selectToken').val();
         var tokenAddress = tokenAddressList[tokenName];
         $('#tokenaddress').val(tokenAddress);
-        balanceOf(tokenAddress)
-        .then(dispalyToken)
+        if($('#selectToken').val() == "ERC20 Token"){
+          $("#unlockButton").hide();
+        }
+        else{
+          allowance(tokenAddress)
+          .then(displayUnlock);
+          balanceOf(tokenAddress)
+          .then(dispalyToken);
+        }
       }
 
       function dispalyToken(amt){
         $('#tkamt').text(+amt/10**18);
       }
 
+      function displayUnlock(amt){
+        if(+amt > 0){
+          $("#unlockButton").hide();
+        }
+        else{
+          $("#unlockButton").show();
+
+        }
+      }
+
       function displayCows(cow) {
-        // Start here
         $("#cowAmount").text(+cow/1e18);
         $("#user").text(userAccount);
       }
